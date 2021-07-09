@@ -1,0 +1,41 @@
+#include "reader_hardware.h"
+
+void setup(){
+    //---ADC CS pin---
+    pinMode(MCP3204::CSpin, OUTPUT);
+    digitalWrite(MCP3204::CSpin, HIGH);
+    //------
+
+    //---SPI configuration---
+    SPI.begin();
+
+    SPI.setBitOrder(MSBFIRST);
+    SPI.setDataMode(SPI_MODE0);
+    SPI.setClockDivider(SPI_CLOCK_DIV8);
+    //------
+
+    //---Console comunication---
+    Serial.begin(115200);
+    //---
+
+    //---Testing---
+    double execTime = 0;
+    size_t N = 100000;
+
+    for(size_t k = 0; k < N; k++){
+        unsigned long startTime = micros();
+        
+        MCP3204::read(0);
+
+        unsigned long endTime = micros();
+
+        execTime += double((endTime - startTime)) / double(N);
+    }
+
+    Serial.println(execTime);
+  //------
+}
+
+void loop(){
+    // Serial.println(MCP3204::read(0));
+}
