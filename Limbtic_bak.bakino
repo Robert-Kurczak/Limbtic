@@ -15,7 +15,7 @@ int ADCvalue(char channel, char PBpin){
   byte dataP1 = SPI.transfer(byte((1 << 7) | (channel << 4)));
   
   //Don't care byte for retriving rest of data
-  byte dataP2 = SPI.transfer(0);
+  byte dataP2 = SPI.transfer(0b00000000);
   //------
 
 //  digitalWrite(PBpin, HIGH);
