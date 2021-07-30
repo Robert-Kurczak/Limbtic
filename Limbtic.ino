@@ -1,10 +1,11 @@
 #include "hardware.h"
 
+LED readerLED('L', 0);
+MCP3204 A2D('B', 0);
+MuxArr Mux('L', 1, 2, 3);
+
 void setup(){
   //---Hardware initalization---
-  LED readerLED('L', 0);
-  MCP3204 A2D('B', 0);
-  MuxArr Mux('L', 1, 2, 3);
   //------
 
   //---SPI configuration---
@@ -17,38 +18,38 @@ void setup(){
 
   Serial.begin(115200);
 
-  double startTime = micros();
+  // double startTime = micros();
 
-  // for(uint8_t i = 0; i < 4; i++){
-  //   for(uint8_t j = 0; j < 8; j++){
-  //     Mux.setChannel(j);
-  //     Serial.println(A2D.read(i));
+  // for(uint8_t i = 0; i < 8; i++){
+  //   Mux.setChannel(i);
+
+  //   for(uint8_t j = 0; j < 4; j++){
+  //     Serial.print(i * 4 + j);
+  //     Serial.print(": ");
+  //     Serial.println(A2D.read(j));
+  //     // A2D.read(j);
   //   }
-
-  //   Serial.println("---");
+    
   // }
 
-  int printedValues = 0;
-  for(uint8_t i = 0; i < 8; i++){
-    Mux.setChannel(i);
+  // double endTime = micros();
 
-    for(uint8_t j = 0; j < 4; j++){
-      Serial.println(A2D.read(j));
-      printedValues++;
-    }
+  // Serial.println("--------------------");
+  // Serial.print("Czas wykonania: ");
+  // Serial.println(endTime - startTime);
+  // Serial.println();
 
-    if(printedValues == 8){
-      Serial.println("---");
-      printedValues = 0;
-    }
-    
-  }
-
-  Serial.println(micros() - startTime);
+  Mux.setChannel(0);
 
   readerLED.High();
   delay(250);
   readerLED.Low();
 }
 
-void loop(){}
+double sample2Resistance(unsigned sample){
+  return 51200.0 * sample / (6301.54 - sample) - 81.38; //Offest due to breadboard wires resistance
+}
+
+void loop(){
+  //Serial.println(sample2Resistance(A2D.read(0)));
+}

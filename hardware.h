@@ -2,7 +2,7 @@
 
 //SPI comunication should be manualy initialized in main cpp file.
 
-class hardware{
+class simpleHardware{
     private:
         struct pinRegs{
             volatile uint8_t& stateReg;
@@ -11,9 +11,11 @@ class hardware{
             pinRegs(volatile uint8_t& stateReg, volatile uint8_t& dirReg) : stateReg(stateReg), dirReg(dirReg){};
         };
 
-        //Function returns struct with PORT and DDR registers based on given port ID letter
-        //Returned registers are used for changing pin state (Low/High) and pin direction (In/Out)
-        pinRegs getRegisters(char port){
+        /*Function returns struct with PORT and DDR registers based on given port ID letter
+        Returned registers are used for changing pin state (Low/High) and pin direction (In/Out)*/
+
+    protected:
+        static pinRegs getRegisters(char port){
             switch(port){
                 case 'A':
                     return pinRegs(PORTA, DDRA);
@@ -35,28 +37,18 @@ class hardware{
             }
         }
 
-    public:
         pinRegs pinRegisters;
-        const uint8_t pin = -1;
+        const uint8_t pin;
 
-        hardware(char port) : pinRegisters(getRegisters(port)){};
-        hardware(char port, uint8_t pin) : pinRegisters(getRegisters(port)), pin(pin){};
+        simpleHardware(char port, uint8_t pin) : pinRegisters(getRegisters(port)), pin(pin){};
 
         //---DDR---
         void setToOut(){
             pinRegisters.dirReg |= byte(1 << pin);
         }
-        
-        void setToOut(uint8_t pin){
-            pinRegisters.dirReg |= byte(1 << pin);
-        }
 
         void setToIn(){
             pinRegisters.dirReg &= ~byte(1 << pin);
-        }
-
-        void setToIn(uint8_t pin){
-            pinRegisters.dirReg |= byte(1 << pin);
         }
         //------
 
@@ -69,24 +61,27 @@ class hardware{
             pinRegisters.stateReg |= byte(1 << pin);
         }
 
-        void High(uint8_t pin){          
-            pinRegisters.stateReg |= byte(1 << pin);
-        }
-
         void Low(){
-            pinRegisters.stateReg &= ~byte(1 << pin);
-        }
-
-        void Low(uint8_t pin){
             pinRegisters.stateReg &= ~byte(1 << pin);
         }
         //------
 };
 
-class LED : public hardware{
+class LED : public simpleHardware{
     public:
-        LED(char port, uint8_t pin) : hardware(port, pin){
+        LED(char port, uint8_t pin) : simpleHardware(port, pin){
             this->setToOut();
+        }
+
+        /*High and Low methods are proteced, because of things they can controll (like CS pin),
+        therefore user shouldn't always have access to them. It's better to wrap them in public methods
+        in specific cases like this one.*/
+        void On(){
+            this->High();
+        }
+
+        void Off(){
+            this->Low();
         }
 
         void blink(){
@@ -95,9 +90,9 @@ class LED : public hardware{
         }
 };
 
-class MCP3204 : public hardware{
+class MCP3204 : public simpleHardware{
     public:
-        MCP3204(char port, uint8_t pin) : hardware(port, pin){
+        MCP3204(char port, uint8_t pin) : simpleHardware(port, pin){
             //Out direction of CS pin
             this->setToOut();
 
@@ -131,13 +126,14 @@ class MCP3204 : public hardware{
     }
 };
 
-class MuxArr : public hardware{
-    public:
+class MuxArr{
+    private:
         uint8_t CH0pin;
         uint8_t CH1pin;
         uint8_t CH2pin;
 
-        MuxArr(char port, uint8_t CH0pin, uint8_t CH1pin, uint8_t CH2pin) : hardware(port){
+    public:
+        MuxArr(char port, uint8_t CH0pin, uint8_t CH1pin, uint8_t CH2pin){
             this->CH0pin = CH0pin;
             this->CH1pin = CH1pin;
             this->CH2pin = CH2pin;
