@@ -1,18 +1,26 @@
 #include <SPI.h>
 
-#define CS 35
-#define CS_port PORTB
-#define CS_pin 0
-#define LED 46
+//D53
+#define CS_PORT_DIR DDRB
+#define CS_PORT_STATE PORTB
+#define CS_PIN 0
+
+//D46
+#define LED_PORT_DIR DDRL
+#define LED_PORT_STATE PORTL
+#define LED_PIN 3
+
 //CH_A = L0
 //CH_B = L1
 //CH_C = L2
+#define MUX_CH_PORTS_DIR DDRL
+#define MUX_CH_PORTS_STATE PORTL
 
 class sensorReader{
     private:
         int readADC(char channel){
             //CS low
-            CS_port &= ~byte(1 << CS_pin);
+            CS_PORT_STATE &= ~byte(1 << CS_PIN);
 
             byte channelBytes[4] = {0b10010100, 0b11010100, 0b10100100, 0b11100100};
 
@@ -25,7 +33,7 @@ class sensorReader{
             byte dataP2 = SPI.transfer(0b00000000);
 
             //CS high
-            CS_port |= byte(1 << CS_pin);
+            CS_PORT_STATE |= byte(1 << CS_PIN);
             //------
 
             //---Data processing---
@@ -39,32 +47,34 @@ class sensorReader{
         }
 
         void setMuxChannel(char channel){
-                PORTL &= 0b11111000;
-                PORTL |= channel;
+                MUX_CH_PORTS_STATE &= 0b11111000;
+                MUX_CH_PORTS_STATE |= channel;
         }
 
 
     public:
         sensorReader(){
-            pinMode(49, OUTPUT);
-            pinMode(48, OUTPUT);
-            pinMode(47, OUTPUT);
+            //Setting mux channel selectors as output
+            MUX_CH_PORTS_DIR |= 0b00000111;
 
-            pinMode(CS, OUTPUT);
-            digitalWrite(CS, HIGH);
+            //Setting ADC CS pin as output
+            CS_PORT_DIR |= byte(1 << CS_PIN);
+
+            //Setting ADC CS pin high be default (not listening)
+            CS_PORT_STATE |= byte(1 << CS_PIN);
         }
 
         void read(){
-            for(int i = 0; i < 4; i++){
-                for(int j = 0; j < 8; j++){
-                    setMuxChannel(j);
-                    
+            for(int i = 0; i < 8; i++){
+                setMuxChannel(i);
+
+                for(int j = 0; j < 4; j++){
                     Serial.print("Mux: ");
-                    Serial.print(i);
-                    Serial.print(" | Channel: ");
                     Serial.print(j);
+                    Serial.print(" | Channel: ");
+                    Serial.print(i);
                     Serial.print(" | Value: ");
-                    Serial.println(readADC(i));
+                    Serial.println(readADC(j));
                 }
             }
         }
