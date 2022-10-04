@@ -1,7 +1,8 @@
 {
     "configuration": "cpu=atmega2560",
     "board": "arduino:avr:mega",
-    "programmer": "arduino:arduinoisp",
+    "programmer": "arduino:avrisp",
     "sketch": "Limbtic.ino",
+    "intelliSenseGen": "disable",
     "port": "COM3"
 }

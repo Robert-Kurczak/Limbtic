@@ -1,5 +1,8 @@
 #include "SensorReader.h"
 
+sensorReader reader;
+
+
 void setup(){
     Serial.begin(115200);
     
@@ -8,10 +11,14 @@ void setup(){
     SPI.beginTransaction(SPISettings(16000000, MSBFIRST, SPI_MODE0));
     //------
 
-    sensorReader reader;
-    reader.read();
+    
+    // reader.getDataPackage();
+    // reader.read();
+    // Serial.println(reader.getDataPackage());
 }
 
 void loop(){
-    
+    Serial.println(reader.getDataPackage());
+    Serial.println("\n");
+    delay(200);
 }

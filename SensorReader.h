@@ -18,6 +18,7 @@
 
 class sensorReader{
     private:
+        //Channel from 0 to 3
         int readADC(char channel){
             //CS low
             CS_PORT_STATE &= ~byte(1 << CS_PIN);
@@ -77,5 +78,26 @@ class sensorReader{
                     Serial.println(readADC(j));
                 }
             }
+        }
+
+        String getDataPackage(){
+            String package = "";
+
+            for(int i = 0; i < 3; i++){
+                setMuxChannel(i);
+
+                for(int j = 0; j < 4; j++){
+                    char data[64];
+
+                    sprintf(data, "%04d", readADC(j));
+
+                    // Serial.println(readADC(j));
+                    
+                    package += data;
+                    package += ";";
+                }
+            }
+
+            return package;
         }
 };
