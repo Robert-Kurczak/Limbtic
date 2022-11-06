@@ -16,8 +16,30 @@
 #define MUX_CH_PORTS_DIR DDRL
 #define MUX_CH_PORTS_STATE PORTL
 
+
 class sensorReader{
     private:
+        
+        struct sensor{
+            char mux;
+            char channel;
+
+            sensor(char mux, char channel) : mux(mux), channel(channel){}
+        };
+
+        sensor sensorsArray[10] = {
+            sensor(1, 1),
+            sensor(0, 1),
+            sensor(3, 4),
+            sensor(2, 4),
+            sensor(1, 4),
+            sensor(0, 4),
+            sensor(3, 0),
+            sensor(2, 0),
+            sensor(1, 0),
+            sensor(0, 0)
+        };
+
         //Channel from 0 to 3
         int readADC(char channel){
             //CS low
@@ -47,9 +69,11 @@ class sensorReader{
             return resultInt;
         }
 
-        void setMuxChannel(char channel){
-                MUX_CH_PORTS_STATE &= 0b11111000;
+        void setMuxChannel(int channel){
+                MUX_CH_PORTS_STATE &= 0b00000000;
                 MUX_CH_PORTS_STATE |= channel;
+
+                delay(5); //propagation time
         }
 
 
@@ -65,39 +89,29 @@ class sensorReader{
             CS_PORT_STATE |= byte(1 << CS_PIN);
         }
 
-        void read(){
-            for(int i = 0; i < 8; i++){
-                setMuxChannel(i);
-
-                for(int j = 0; j < 4; j++){
-                    Serial.print("Mux: ");
-                    Serial.print(j);
-                    Serial.print(" | Channel: ");
-                    Serial.print(i);
-                    Serial.print(" | Value: ");
-                    Serial.println(readADC(j));
-                }
-            }
-        }
-
         String getDataPackage(){
             String package = "";
 
-            for(int i = 0; i < 3; i++){
-                setMuxChannel(i);
+            for(int i = 0; i < 10; i++){
+                setMuxChannel(sensorsArray[i].channel);
 
-                for(int j = 0; j < 4; j++){
-                    char data[64];
+                char data[64];
+                sprintf(data, "%04d", readADC(sensorsArray[i].mux));
 
-                    sprintf(data, "%04d", readADC(j));
-
-                    // Serial.println(readADC(j));
-                    
-                    package += data;
-                    package += ";";
-                }
+                package += data;
+                package += ";";
             }
 
+            package += "\n";
             return package;
         }
+
+        // String getReading(int sensorIndex){
+        //     setMuxChannel(sensorsArray[sensorIndex].channel);
+
+        //     char data[64];
+        //     sprintf(data, "%04d| M%d C%d", readADC(sensorsArray[sensorIndex].mux), sensorsArray[sensorIndex].mux, MUX_CH_PORTS_STATE);
+
+        //     return data;
+        // }
 };
