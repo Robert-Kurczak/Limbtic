@@ -29,14 +29,18 @@ class sensorReader{
 
         sensor sensorsArray[10] = {
             sensor(1, 1),
-            sensor(0, 1),
-            sensor(3, 4),
-            sensor(2, 4),
-            sensor(1, 4),
             sensor(0, 4),
+
+            sensor(0, 1),
             sensor(3, 0),
+
+            sensor(3, 4),
             sensor(2, 0),
+
+            sensor(2, 4),
             sensor(1, 0),
+
+            sensor(1, 4),
             sensor(0, 0)
         };
 
@@ -95,23 +99,11 @@ class sensorReader{
             for(int i = 0; i < 10; i++){
                 setMuxChannel(sensorsArray[i].channel);
 
-                char data[64];
-                sprintf(data, "%04d", readADC(sensorsArray[i].mux));
-
-                package += data;
+                package += String(readADC(sensorsArray[i].mux));
                 package += ";";
             }
 
-            package += "\n";
+            package.remove(package.length() - 1);
             return package;
         }
-
-        // String getReading(int sensorIndex){
-        //     setMuxChannel(sensorsArray[sensorIndex].channel);
-
-        //     char data[64];
-        //     sprintf(data, "%04d| M%d C%d", readADC(sensorsArray[sensorIndex].mux), sensorsArray[sensorIndex].mux, MUX_CH_PORTS_STATE);
-
-        //     return data;
-        // }
 };
